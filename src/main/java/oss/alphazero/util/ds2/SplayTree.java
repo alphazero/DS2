@@ -225,54 +225,66 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 
 
 	// ------------------------------------------------------------------------
-	// Public API
+	// Public API : Map<K, V>
 	// ------------------------------------------------------------------------
 
-	/* (non-Javadoc) @see java.util.Map#clear() */
+	/** NOT SUPPORTED */
 	@Override
 	public void clear() {
-		throw new RuntimeException ("Map<K,V>#clear is not implemented!");
+		throw new RuntimeException ("Map<K,V>#clear is not supported!");
 	}
 
-	/* (non-Javadoc) @see java.util.Map#containsKey(java.lang.Object) */
-	@Override
-	public boolean containsKey(Object key) {
-		throw new RuntimeException ("Map<K,V>#containsKey is not implemented!");
-	}
-
-	/* (non-Javadoc) @see java.util.Map#containsValue(java.lang.Object) */
+	/** NOT SUPPORTED */
 	@Override
 	public boolean containsValue(Object value) {
-		// TODO Auto-generated method stub
-		throw new RuntimeException ("Map<K,V>#containsValue is not implemented!");
+		throw new RuntimeException ("Map<K,V>#containsValue is not supported!");
 	}
-
-	/* (non-Javadoc) @see java.util.Map#entrySet() */
+	
+	/** NOT SUPPORTED */
 	@Override
 	public Set<java.util.Map.Entry<K, V>> entrySet() {
-		// TODO Auto-generated method stub
-		throw new RuntimeException ("Map<K,V>#entrySet is not implemented!");
+		throw new RuntimeException ("Map<K,V>#entrySet is not supported!");
+	}
+
+	/** NOT SUPPORTED */
+	@Override
+	public Set<K> keySet() {
+		throw new RuntimeException ("Map<K,V>#keySet is not implemented!");
+	}
+	
+	/* (non-Javadoc) @see java.util.Map#containsKey(java.lang.Object) */
+	@SuppressWarnings("unchecked")
+	@Override final
+	public boolean containsKey(Object key) {
+		boolean res = false;
+
+		if(find((K)key) != null)
+			res = true;
+
+		return res;
 	}
 
 	/* (non-Javadoc) @see java.util.Map#get(java.lang.Object) */
-	@Override
+	@SuppressWarnings("unchecked")
+	@Override final
 	public V get(Object key) {
-		// TODO Auto-generated method stub
-		throw new RuntimeException ("Map<K,V>#get is not implemented!");
-	}
-
-	/* (non-Javadoc) @see java.util.Map#keySet() */
-	@Override
-	public Set<K> keySet() {
-		// TODO Auto-generated method stub
-		throw new RuntimeException ("Map<K,V>#keySet is not implemented!");
+		final BinaryNode node = find((K)key);
+		if(node == null)
+			return null;
+		
+		return node.value;
 	}
 
 	/* (non-Javadoc) @see java.util.Map#put(java.lang.Object, java.lang.Object) */
-	@Override
+	@Override final
 	public V put(K key, V value) {
-		// TODO Auto-generated method stub
-		throw new RuntimeException ("Map<K,V>#put is not implemented!");
+		final BinaryNode node = find((K)key);
+		if(node == null) {
+			if(!insert(key, value))
+				throw new RuntimeException("BUG: find returned null but insert failed!");
+			return null; // successful insert of new key per Map#put
+		}
+		return node.setValue(value);
 	}
 
 	/* (non-Javadoc) @see java.util.Map#putAll(java.util.Map) */
@@ -283,12 +295,24 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 	}
 
 	/* (non-Javadoc) @see java.util.Map#remove(java.lang.Object) */
-	@Override
+	@SuppressWarnings("unchecked")
+	@Override final
 	public V remove(Object key) {
-		// TODO Auto-generated method stub
-		throw new RuntimeException ("Map<K,V>#remove is not implemented!");
+		final BinaryNode node = find((K)key);
+		if(node == null)
+			return null; // wasn't there; null per Map#remove
+		V value = node.value;
+		// TODO: rename remove(k) to delete()
+		return value;
 	}
 
+
+	/* (non-Javadoc) @see java.util.Map#size() */
+	@Override final
+	public int size() {
+		return size;
+	}
+	
 	/* (non-Javadoc) @see java.util.Map#values() */
 	@Override
 	public Collection<V> values() {
@@ -388,10 +412,6 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 		t.right = header.left;
 		root = t;
 	}
-
-	final public int size() {
-		return size;
-	}
 	// ------------------------------------------------------------------------
 	// Ad-hoc Tests
 	// ------------------------------------------------------------------------
@@ -484,16 +504,23 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 
 		// --------------------------------------
 		// test for keys that should be contained
+			// using find
 		for(int i = 2; i < NUMS; i+=2)
 			if(t.find(i) == null)
 				System.err.println("Error: find fails for " + i);
+		for(int i = 2; i < NUMS; i+=2)
+			if(!t.containsKey(i))
+				System.err.println("Error: containsKey fails for " + i);
 		System.out.println(" - Positive containment tests successfully completed");
 
 		// --------------------------------------
 		// test for keys that should not be contained
 		for(int i = 1; i < NUMS; i+=2)
 			if(t.find(i) != null) 
-				System.err.println("Error: Found deleted item " + i);
+				System.err.println("Error: find fails - found deleted item " + i);
+		for(int i = 1; i < NUMS; i+=2)
+			if(t.containsKey(i)) 
+				System.err.println("Error: containsKey fails - found deleted item " + i);
 		System.out.println(" - negative containment tests successfully completed");
 	}
 }
