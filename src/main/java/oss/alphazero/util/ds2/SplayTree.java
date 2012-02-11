@@ -48,7 +48,7 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 		BinaryNode left;
 		/** right child */
 		BinaryNode right;
-		
+
 		/* (non-Javadoc) @see java.util.Map.Entry#getKey() */
 		@Override final
 		public K getKey() {
@@ -88,7 +88,102 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 	}
 
 	// ------------------------------------------------------------------------
-	// Public API
+	// Inner Ops
+	/*
+	 * Exactly per original by Dr. Sleator.  Not touched.
+	 */
+	// ------------------------------------------------------------------------
+	/** 
+	 * This method just illustrates the top-down method of
+	 * implementing the move-to-root operation and <b>is not used
+	 * in this version</b>. 
+	 */
+	@SuppressWarnings("unused")
+	private void moveToRoot(K key) {
+		BinaryNode l, r, t;
+		l = r = header;
+		t = root;
+		header.left = header.right = null;
+		for (;;) {
+			if (key.compareTo(t.key) < 0) {
+				if (t.left == null) break;
+				r.left = t;                                 /* link right */
+				r = t;
+				t = t.left;
+			} else if (key.compareTo(t.key) > 0) {
+				if (t.right == null) break;
+				l.right = t;                                /* link left */
+				l = t;
+				t = t.right;
+			} else {
+				break;
+			}
+		}
+		l.right = t.left;                                   /* assemble */
+		r.left = t.right;
+		t.left = header.right;
+		t.right = header.left;
+		root = t;
+	}
+
+	/**
+	 * Internal method to perform a top-down splay.
+	 * 
+	 *   splay(key) does the splay operation on the given key.
+	 *   If key is in the tree, then the BinaryNode containing
+	 *   that key becomes the root.  If key is not in the tree,
+	 *   then after the splay, key.root is either the greatest key
+	 *   < key in the tree, or the lest key > key in the tree.
+	 *
+	 *   This means, among other things, that if you splay with
+	 *   a key that's larger than any in the tree, the rightmost
+	 *   node of the tree becomes the root.  This property is used
+	 *   in the delete() method.
+	 */
+
+	private void splay(K key) {
+		BinaryNode l, r, t, y;
+		l = r = header;
+		t = root;
+		header.left = header.right = null;
+		for (;;) {
+			if (key.compareTo(t.key) < 0) {
+				if (t.left == null) break;
+				if (key.compareTo(t.left.key) < 0) {
+					y = t.left;                            /* rotate right */
+					t.left = y.right;
+					y.right = t;
+					t = y;
+					if (t.left == null) break;
+				}
+				r.left = t;                                 /* link right */
+				r = t;
+				t = t.left;
+			} else if (key.compareTo(t.key) > 0) {
+				if (t.right == null) break;
+				if (key.compareTo(t.right.key) > 0) {
+					y = t.right;                            /* rotate left */
+					t.right = y.left;
+					y.left = t;
+					t = y;
+					if (t.right == null) break;
+				}
+				l.right = t;                                /* link left */
+				l = t;
+				t = t.right;
+			} else {
+				break;
+			}
+		}
+		l.right = t.left;                                   /* assemble */
+		r.left = t.right;
+		t.left = header.right;
+		t.right = header.left;
+		root = t;
+	}
+	
+	// ------------------------------------------------------------------------
+	// Public API : SplayTree
 	// ------------------------------------------------------------------------
 	/**
 	 * Insert into the key-value mapping into the tree. Size is incremented.
@@ -225,7 +320,6 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 		return root == null;
 	}
 
-
 	// ------------------------------------------------------------------------
 	// Public API : Map<K, V>
 	// ------------------------------------------------------------------------
@@ -249,7 +343,7 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 		final BinaryNode node = find((K)key);
 		if(node == null)
 			return null;
-		
+
 		return node.value;
 	}
 
@@ -272,7 +366,7 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 		final BinaryNode node = find((K)key);
 		if(node == null)
 			return null; // wasn't there; null per Map#remove
-		
+
 		// delete the node - save value for return
 		V value = node.value;
 		if(!delete((K)key))
@@ -286,7 +380,7 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 	public int size() {
 		return size;
 	}
-	
+
 	/* (non-Javadoc) @see java.util.Map#putAll(java.util.Map) */
 	@Override
 	public void putAll(Map<? extends K, ? extends V> m) {
@@ -305,7 +399,7 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 	public boolean containsValue(Object value) {
 		throw new RuntimeException ("Map<K,V>#containsValue is not supported!");
 	}
-	
+
 	/** NOT SUPPORTED */
 	@Override
 	public Set<java.util.Map.Entry<K, V>> entrySet() {
@@ -317,331 +411,10 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 	public Set<K> keySet() {
 		throw new RuntimeException ("Map<K,V>#keySet is not supported!");
 	}
-	
+
 	/** NOT SUPPORTED */
 	@Override
 	public Collection<V> values() {
 		throw new RuntimeException ("Map<K,V>#values is not supported!");
-	}
-
-	// ------------------------------------------------------------------------
-	// Inner Ops
-	/*
-	 * Exactly per original by Dr. Sleator.  Not touched.
-	 */
-	// ------------------------------------------------------------------------
-	/** 
-	 * This method just illustrates the top-down method of
-	 * implementing the move-to-root operation and <b>is not used
-	 * in this version</b>. 
-	 */
-	@SuppressWarnings("unused")
-	private void moveToRoot(K key) {
-		BinaryNode l, r, t;
-		l = r = header;
-		t = root;
-		header.left = header.right = null;
-		for (;;) {
-			if (key.compareTo(t.key) < 0) {
-				if (t.left == null) break;
-				r.left = t;                                 /* link right */
-				r = t;
-				t = t.left;
-			} else if (key.compareTo(t.key) > 0) {
-				if (t.right == null) break;
-				l.right = t;                                /* link left */
-				l = t;
-				t = t.right;
-			} else {
-				break;
-			}
-		}
-		l.right = t.left;                                   /* assemble */
-		r.left = t.right;
-		t.left = header.right;
-		t.right = header.left;
-		root = t;
-	}
-
-	/**
-	 * Internal method to perform a top-down splay.
-	 * 
-	 *   splay(key) does the splay operation on the given key.
-	 *   If key is in the tree, then the BinaryNode containing
-	 *   that key becomes the root.  If key is not in the tree,
-	 *   then after the splay, key.root is either the greatest key
-	 *   < key in the tree, or the lest key > key in the tree.
-	 *
-	 *   This means, among other things, that if you splay with
-	 *   a key that's larger than any in the tree, the rightmost
-	 *   node of the tree becomes the root.  This property is used
-	 *   in the delete() method.
-	 */
-
-	private void splay(K key) {
-		BinaryNode l, r, t, y;
-		l = r = header;
-		t = root;
-		header.left = header.right = null;
-		for (;;) {
-			if (key.compareTo(t.key) < 0) {
-				if (t.left == null) break;
-				if (key.compareTo(t.left.key) < 0) {
-					y = t.left;                            /* rotate right */
-					t.left = y.right;
-					y.right = t;
-					t = y;
-					if (t.left == null) break;
-				}
-				r.left = t;                                 /* link right */
-				r = t;
-				t = t.left;
-			} else if (key.compareTo(t.key) > 0) {
-				if (t.right == null) break;
-				if (key.compareTo(t.right.key) > 0) {
-					y = t.right;                            /* rotate left */
-					t.right = y.left;
-					y.left = t;
-					t = y;
-					if (t.right == null) break;
-				}
-				l.right = t;                                /* link left */
-				l = t;
-				t = t.right;
-			} else {
-				break;
-			}
-		}
-		l.right = t.left;                                   /* assemble */
-		r.left = t.right;
-		t.left = header.right;
-		t.right = header.left;
-		root = t;
-	}
-	
-	// ------------------------------------------------------------------------
-	// Ad-hoc Tests
-	/*
-	 * test code stolen from Weiss
-	 * cleaned up to use typesafe form - jh
-	 */
-	// ------------------------------------------------------------------------
-
-	/**
-	 * <b>NOTE: Must enable asserts with java -ea ... </b>
-	 */
-	static final int NUMS = 40000;
-	static final int GAP  =   307;
-	
-	public static void main(String [ ] args) {
-		System.out.format("Running 'Weiss' ad-hoc tests with NUMS:%s GAP:%s\n", NUMS, GAP);
-		System.out.format("*** NOTE: enable assert with Java -ea ...*** \n");
-
-		testAsSplayTree();
-		
-		testAsMap();
-	}
-	public static void testAsMap() {
-		System.out.println ("\n###################################");
-		System.out.format  ("## tests Map interface\n");
-		System.out.println ("###################################\n");
-		
-		Map<Integer, String> t = new SplayTree<Integer, String>();
-
-		// --------------------------------------
-		// test null key checks
-		// on insert
-		boolean didcheck = false;
-		try {
-			t.put(null, "woof");
-
-		} catch (IllegalArgumentException e) {
-			didcheck = true;
-		} finally {
-			assert didcheck : "did not prevent put with null key";
-		}
-
-			// on remove
-		didcheck = false;
-		try {
-			t.remove(null);
-
-		} catch (IllegalArgumentException e) {
-			didcheck = true;
-		} finally {
-			assert didcheck : "did not prevent remove with null key";
-		}
-
-			// on find
-		didcheck = false;
-		try {
-			t.get(null);
-
-		} catch (IllegalArgumentException e) {
-			didcheck = true;
-		} finally {
-			assert didcheck : "did not prevent get with null key";
-		}
-		System.out.println(" - null key tests successfully completed");
-
-		// --------------------------------------
-		// test inserts
-		int cnt = 0;
-		for(int i = GAP; i != 0; i = (i + GAP) % NUMS){
-			String oldv = t.put(i, String.format("%d-value", i).toString());
-			assert oldv==null : "on put of new k/v mappings for key " + i;
-			cnt++;
-		}
-		assert cnt == t.size() : "size and insert count mistmatch";
-		System.out.format(" - %d inserts nodes successfully completed\n", cnt);
-
-		// --------------------------------------
-		// test removes
-		int remcnt = 0;
-		for(int i = 1; i < NUMS; i+= 2) {
-			String oldv = t.remove(i);
-			assert oldv != null : "on remove of node with key" + i;
-			String expectedoldv = String.format("%d-value", i).toString();
-			assert oldv.equals(expectedoldv) : "expected oldv " + expectedoldv;
-			remcnt++;
-			cnt--;
-		}
-		assert cnt == t.size() : "size and updated count after remove mistmatch";
-		System.out.format(" - %d delete nodes successfully completed\n", remcnt);
-		System.out.format(" - %d items now in tree\n", t.size());
-
-		// --------------------------------------
-		// test min and max keys
-		// not applicable to map
-//		Integer maxkey = t.maxKey();
-//		assert maxkey != null : "max is null";
-//
-//		Integer minkey = t.minKey();
-//		assert minkey != null : "min is null";
-//
-//		if((minkey).intValue() != 2 || (maxkey).intValue() != NUMS - 2)
-//			System.err.println("FindMin or FindMax error!");
-//
-//		System.out.format (" - (minkey:%s, maxkey:%d)\n", minkey, maxkey);
-//		System.out.println(" - Min/Max key tests successfully completed");
-
-		// --------------------------------------
-		// test for keys that should be contained
-			// using find
-		for(int i = 2; i < NUMS; i+=2)
-			if(!t.containsKey(i))
-				System.err.println("Error: containsKey fails for " + i);
-		System.out.println(" - Positive containment tests successfully completed");
-
-		// --------------------------------------
-		// test for keys that should not be contained
-		for(int i = 1; i < NUMS; i+=2)
-			if(t.containsKey(i)) 
-				System.err.println("Error: containsKey fails - found deleted item " + i);
-		System.out.println(" - negative containment tests successfully completed");
-	}
-
-	public static void testAsSplayTree () {
-		
-		System.out.println ("\n###################################");
-		System.out.format  ("## tests SplayTree interface\n");
-		System.out.println ("###################################\n");
-		
-		SplayTree<Integer, String> t = new SplayTree<Integer, String>();
-
-		// --------------------------------------
-		// test null key checks
-		// on insert
-		boolean didcheck = false;
-		try {
-			t.insert(null, "woof");
-
-		} catch (IllegalArgumentException e) {
-			didcheck = true;
-		} finally {
-			assert didcheck : "did not prevent insert with null key";
-		}
-
-			// on remove
-		didcheck = false;
-		try {
-			t.delete(null);
-
-		} catch (IllegalArgumentException e) {
-			didcheck = true;
-		} finally {
-			assert didcheck : "did not prevent delete with null key";
-		}
-
-			// on find
-		didcheck = false;
-		try {
-			t.find(null);
-
-		} catch (IllegalArgumentException e) {
-			didcheck = true;
-		} finally {
-			assert didcheck : "did not prevent find with null key";
-		}
-		System.out.println(" - null key tests successfully completed");
-
-		// --------------------------------------
-		// test inserts
-		int cnt = 0;
-		for(int i = GAP; i != 0; i = (i + GAP) % NUMS){
-			boolean r = t.insert(i, String.format("%d-value", i).toString());
-			assert r : "on insert of node " + i;
-			cnt++;
-		}
-		assert cnt == t.size() : "size and insert count mistmatch";
-		System.out.format(" - %d inserts nodes successfully completed\n", cnt);
-
-		// --------------------------------------
-		// test removes
-		int remcnt = 0;
-		for(int i = 1; i < NUMS; i+= 2) {
-			boolean r = t.delete(i);
-			assert r : "on delete of node " + i;
-			remcnt++;
-			cnt--;
-		}
-		assert cnt == t.size() : "size and updated count after remove mistmatch";
-		System.out.format(" - %d delete nodes successfully completed\n", remcnt);
-		System.out.format(" - %d items now in tree\n", t.size());
-
-		// --------------------------------------
-		// test min and max keys
-		Integer maxkey = t.maxKey();
-		assert maxkey != null : "max is null";
-
-		Integer minkey = t.minKey();
-		assert minkey != null : "min is null";
-
-		if((minkey).intValue() != 2 || (maxkey).intValue() != NUMS - 2)
-			System.err.println("FindMin or FindMax error!");
-
-		System.out.format (" - (minkey:%s, maxkey:%d)\n", minkey, maxkey);
-		System.out.println(" - Min/Max key tests successfully completed");
-
-		// --------------------------------------
-		// test for keys that should be contained
-			// using find
-		for(int i = 2; i < NUMS; i+=2)
-			if(t.find(i) == null)
-				System.err.println("Error: find fails for " + i);
-		for(int i = 2; i < NUMS; i+=2)
-			if(!t.containsKey(i))
-				System.err.println("Error: containsKey fails for " + i);
-		System.out.println(" - Positive containment tests successfully completed");
-
-		// --------------------------------------
-		// test for keys that should not be contained
-		for(int i = 1; i < NUMS; i+=2)
-			if(t.find(i) != null) 
-				System.err.println("Error: find fails - found deleted item " + i);
-		for(int i = 1; i < NUMS; i+=2)
-			if(t.containsKey(i)) 
-				System.err.println("Error: containsKey fails - found deleted item " + i);
-		System.out.println(" - negative containment tests successfully completed");
 	}
 }
