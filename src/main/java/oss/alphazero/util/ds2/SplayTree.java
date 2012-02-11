@@ -17,8 +17,8 @@ import java.util.Set;
  * <li>Null values are allowed.</li>
  * </ol>
  * 
- * @param K SprayTree node key type
- * 
+ * @param K SplayTree node key type
+ * @param V SplayTree node value type
  * @author Danny Sleator <sleator@cs.cmu.edu>
  * @author Joubin Houshyar <alphazero@sensesay.net>
  * 
@@ -90,7 +90,7 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 	// ------------------------------------------------------------------------
 	// Inner Ops
 	/*
-	 * Exactly per original by Dr. Sleator.  Not touched.
+	 * Exactly per original by Dr. Sleator.  Not touched (minus the generics).
 	 */
 	// ------------------------------------------------------------------------
 	/** 
@@ -132,8 +132,8 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 	 *   splay(key) does the splay operation on the given key.
 	 *   If key is in the tree, then the BinaryNode containing
 	 *   that key becomes the root.  If key is not in the tree,
-	 *   then after the splay, key.root is either the greatest key
-	 *   < key in the tree, or the lest key > key in the tree.
+	 *   then after the splay, root.key is either the greatest key
+	 *   in the tree, or the lest key key in the tree.
 	 *
 	 *   This means, among other things, that if you splay with
 	 *   a key that's larger than any in the tree, the rightmost
