@@ -21,8 +21,8 @@ public class SplayTree<T extends Comparable<T>>
 {
 	class BinaryNode
 	{
-		BinaryNode(T theKey) {
-			key = theKey;
+		BinaryNode(T key) {
+			this.key = key;
 			left = right = null;
 		}
 
@@ -71,57 +71,75 @@ public class SplayTree<T extends Comparable<T>>
 	}
 
 	/**
-	 * Remove from the tree.
-	 * @param x the item to remove.
-	 * @throws ItemNotFoundException if x is not found.
+	 * Remove item from the tree.  Note that a splay operation
+	 * is performed on tree even if the key does not exist.  
+	 * @param key the item to remove.
+	 * @return true if key was found and removed. false otherwise.
 	 */
-	public void remove(T key) {
-		BinaryNode x;
+	public boolean remove(T key) {
+		// splay the tree - if key exists the root will be key
 		splay(key);
 		if (key.compareTo(root.key) != 0) {
-			//            throw new ItemNotFoundException(x.toString());
-			return;
+			return false; // not found
 		}
-		// Now delete the root
+		
+		// key exists and is root - delete it
 		if (root.left == null) {
 			root = root.right;
 		} else {
-			x = root.right;
+			final BinaryNode x = root.right;
 			root = root.left;
 			splay(key);
 			root.right = x;
 		}
+		return true;
 	}
 
 	/**
-	 * Find the smallest item in the tree.
+	 * @return the smallest item in tree; null if empty
 	 */
 	public T findMin() {
 		BinaryNode x = root;
-		if(root == null) return null;
-		while(x.left != null) x = x.left;
+		if(root == null) 
+			return null;
+		while(x.left != null) 
+			x = x.left;
+		
 		splay(x.key);
+		
 		return x.key;
 	}
 
 	/**
-	 * Find the largest item in the tree.
+	 * @return the largest item in the tree; null if empty
 	 */
 	public T findMax() {
 		BinaryNode x = root;
-		if(root == null) return null;
-		while(x.right != null) x = x.right;
+		if(root == null) 
+			return null;
+		while(x.right != null) 
+			x = x.right;
+		
 		splay(x.key);
+		
 		return x.key;
 	}
 
 	/**
-	 * Find an item in the tree.
+	 * Find an item in the tree. Splay op is applied
+	 * to tree regardless of whether item exists or not.
+	 * @return the key if found; null if not
+	 * REVU (jh): shouldn't this just return boolean?
 	 */
 	public T find(T key) {
-		if (root == null) return null;
+		if (root == null) 
+			return null;
+
 		splay(key);
-		if(root.key.compareTo(key) != 0) return null;
+		
+		if(root.key.compareTo(key) != 0) 
+			return null;
+		
 		return root.key;
 	}
 
@@ -239,21 +257,22 @@ public class SplayTree<T extends Comparable<T>>
 			t.insert(i);
 		System.out.println("Inserts complete");
 
-		for(int i = 1; i < NUMS; i+= 2)
-			t.remove(i);
+		for(int i = 1; i < NUMS; i+= 2) {
+			boolean r = t.remove(i);
+			assert r : "on remove of " + i;
+		}
 		System.out.println("Removes complete");
 
 		if((t.findMin()).intValue() != 2 ||
 				((t.findMax())).intValue() != NUMS - 2)
-			System.out.println("FindMin or FindMax error!");
+			System.err.println("FindMin or FindMax error!");
 
 		for(int i = 2; i < NUMS; i+=2)
 			if((t.find(i)).intValue() != i)
-				System.out.println("Error: find fails for " + i);
+				System.err.println("Error: find fails for " + i);
 
 		for(int i = 1; i < NUMS; i+=2)
-			if(t.find(new Integer(i))  != null)
-				System.out.println("Error: Found deleted item " + i);
+			if(t.find(i)  != null) 
+				System.err.println("Error: Found deleted item " + i);
 	}
-
 }
