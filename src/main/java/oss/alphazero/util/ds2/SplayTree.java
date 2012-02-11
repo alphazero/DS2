@@ -1,6 +1,8 @@
 package oss.alphazero.util.ds2;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Implements a top-down Splay Tree based on original work
@@ -25,7 +27,7 @@ import java.util.Map;
  * @update:  Feb 10, 2012
  * 
  */
-public class SplayTree<K extends Comparable<K>, V>
+public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 {
 	// ------------------------------------------------------------------------
 	// Inner class: BinaryNode
@@ -63,7 +65,7 @@ public class SplayTree<K extends Comparable<K>, V>
 			return oldv;
 		} 
 	}
-	
+
 	// ------------------------------------------------------------------------
 	// Properties
 	// ------------------------------------------------------------------------
@@ -72,7 +74,7 @@ public class SplayTree<K extends Comparable<K>, V>
 
 	/** header node (changed from static - jh) */
 	private final BinaryNode header = new BinaryNode(null, null); // For splay
-	
+
 	/** number of key-value mappings */
 	private int size;
 
@@ -95,7 +97,7 @@ public class SplayTree<K extends Comparable<K>, V>
 	final public boolean insert(K key, V value) throws IllegalArgumentException {
 		if(key == null)
 			throw new IllegalArgumentException("null key");
-		
+
 		// if empty then just add it
 		if (isEmpty()) {
 			root = new BinaryNode(key, value);
@@ -110,7 +112,7 @@ public class SplayTree<K extends Comparable<K>, V>
 		if ((c = key.compareTo(root.key)) == 0) {
 			return false;
 		}
-		
+
 		// insert new node
 		BinaryNode n = new BinaryNode(key, value);
 		if (c < 0) {
@@ -124,7 +126,7 @@ public class SplayTree<K extends Comparable<K>, V>
 		}
 		root = n;
 		++size;
-		
+
 		return true;
 	}
 
@@ -134,14 +136,18 @@ public class SplayTree<K extends Comparable<K>, V>
 	 * 
 	 * @param key of the node to remove.
 	 * @return true if key was found and removed. false otherwise.
+	 * @throws IllegalArgumentException if key is null
 	 */
 	final public boolean remove(K key) {
+		if(key == null)
+			throw new IllegalArgumentException("null key");
+
 		// splay the tree - if key exists the root will be key
 		splay(key);
 		if (key.compareTo(root.key) != 0) {
 			return false; // not found
 		}
-		
+
 		// key exists and is root - delete it
 		if (root.left == null) {
 			root = root.right;
@@ -152,7 +158,7 @@ public class SplayTree<K extends Comparable<K>, V>
 			root.right = x;
 		}
 		--size;
-		
+
 		return true;
 	}
 
@@ -165,9 +171,9 @@ public class SplayTree<K extends Comparable<K>, V>
 			return null;
 		while(x.left != null) 
 			x = x.left;
-		
+
 		splay(x.key);
-		
+
 		return x.key;
 	}
 
@@ -177,35 +183,39 @@ public class SplayTree<K extends Comparable<K>, V>
 	final public K maxKey() {
 		if(isEmpty()) 
 			return null;
-		
+
 		BinaryNode x = root;
 		while(x.right != null) 
 			x = x.right;
-		
+
 		splay(x.key);
-		
+
 		return x.key;
 	}
 
 	/**
-	 * Find a key in the tree. Splay operation is applied
-	 * to tree regardless of whether item exists or not.
+	 * Find a node in the tree. Splay operation is applied
+	 * to tree regardless of whether key specified exists or not.
 	 * @return true if contained; false otherwise
+	 * @throws IllegalArgumentException if key is null
 	 * 
 	 * REVU (jh): this method should just return boolean.
 	 * REVU (jh): renamed to contains
 	 * REVU (jh): nope - lets rename it back to find
 	 *            and introduce contains using find.
 	 */
-	final public boolean contains(K key) {
+	final public boolean find(K key) {
+		if(key == null)
+			throw new IllegalArgumentException("null key");
+
 		if (isEmpty()) 
 			return false;
 
 		splay(key);
-		
+
 		if(root.key.compareTo(key) != 0) 
 			return false;
-		
+
 		return true;
 	}
 
@@ -216,6 +226,80 @@ public class SplayTree<K extends Comparable<K>, V>
 	final public boolean isEmpty() {
 		return root == null;
 	}
+
+
+	// ------------------------------------------------------------------------
+	// Public API
+	// ------------------------------------------------------------------------
+
+	/* (non-Javadoc) @see java.util.Map#clear() */
+	@Override
+	public void clear() {
+		throw new RuntimeException ("Map<K,V>#clear is not implemented!");
+	}
+
+	/* (non-Javadoc) @see java.util.Map#containsKey(java.lang.Object) */
+	@Override
+	public boolean containsKey(Object key) {
+		throw new RuntimeException ("Map<K,V>#containsKey is not implemented!");
+	}
+
+	/* (non-Javadoc) @see java.util.Map#containsValue(java.lang.Object) */
+	@Override
+	public boolean containsValue(Object value) {
+		// TODO Auto-generated method stub
+		throw new RuntimeException ("Map<K,V>#containsValue is not implemented!");
+	}
+
+	/* (non-Javadoc) @see java.util.Map#entrySet() */
+	@Override
+	public Set<java.util.Map.Entry<K, V>> entrySet() {
+		// TODO Auto-generated method stub
+		throw new RuntimeException ("Map<K,V>#entrySet is not implemented!");
+	}
+
+	/* (non-Javadoc) @see java.util.Map#get(java.lang.Object) */
+	@Override
+	public V get(Object key) {
+		// TODO Auto-generated method stub
+		throw new RuntimeException ("Map<K,V>#get is not implemented!");
+	}
+
+	/* (non-Javadoc) @see java.util.Map#keySet() */
+	@Override
+	public Set<K> keySet() {
+		// TODO Auto-generated method stub
+		throw new RuntimeException ("Map<K,V>#keySet is not implemented!");
+	}
+
+	/* (non-Javadoc) @see java.util.Map#put(java.lang.Object, java.lang.Object) */
+	@Override
+	public V put(K key, V value) {
+		// TODO Auto-generated method stub
+		throw new RuntimeException ("Map<K,V>#put is not implemented!");
+	}
+
+	/* (non-Javadoc) @see java.util.Map#putAll(java.util.Map) */
+	@Override
+	public void putAll(Map<? extends K, ? extends V> m) {
+		// TODO Auto-generated method stub
+		throw new RuntimeException ("Map<K,V>#putAll is not implemented!");
+	}
+
+	/* (non-Javadoc) @see java.util.Map#remove(java.lang.Object) */
+	@Override
+	public V remove(Object key) {
+		// TODO Auto-generated method stub
+		throw new RuntimeException ("Map<K,V>#remove is not implemented!");
+	}
+
+	/* (non-Javadoc) @see java.util.Map#values() */
+	@Override
+	public Collection<V> values() {
+		// TODO Auto-generated method stub
+		throw new RuntimeException ("Map<K,V>#values is not implemented!");
+	}
+
 
 	// ------------------------------------------------------------------------
 	// Inner Ops
@@ -315,9 +399,10 @@ public class SplayTree<K extends Comparable<K>, V>
 	// ------------------------------------------------------------------------
 	// Ad-hoc Tests
 	// ------------------------------------------------------------------------
-	
+
 	// test code stolen from Weiss
 	// cleaned up to use typesafe form - jh
+	// NOTE: ENABLE ASSERT!
 	public static void main(String [ ] args)
 	{
 		SplayTree<Integer, String> t = new SplayTree<Integer, String>();
@@ -327,8 +412,45 @@ public class SplayTree<K extends Comparable<K>, V>
 		System.out.format("Running 'Weiss' ad-hoc tests with NUMS:%s GAP:%s\n", NUMS, GAP);
 		System.out.format("*** NOTE: enable assert with Java -ea ...*** \n\n");
 
-		int cnt = 0;
+		// --------------------------------------
+		// test null key checks
+		// on insert
+		boolean didcheck = false;
+		try {
+			t.insert(null, "woof");
+
+		} catch (IllegalArgumentException e) {
+			didcheck = true;
+		} finally {
+			assert didcheck : "did not prevent insert with null key";
+		}
+
+			// on remove
+		didcheck = false;
+		try {
+			t.remove(null);
+
+		} catch (IllegalArgumentException e) {
+			didcheck = true;
+		} finally {
+			assert didcheck : "did not prevent remove with null key";
+		}
+
+			// on find
+		didcheck = false;
+		try {
+			t.find(null);
+
+		} catch (IllegalArgumentException e) {
+			didcheck = true;
+		} finally {
+			assert didcheck : "did not prevent find with null key";
+		}
+		System.out.println(" - null key tests successfully completed");
+
+		// --------------------------------------
 		// test inserts
+		int cnt = 0;
 		for(int i = GAP; i != 0; i = (i + GAP) % NUMS){
 			boolean r = t.insert(i, String.format("%d-value", i).toString());
 			assert r : "on insert " + i;
@@ -336,8 +458,8 @@ public class SplayTree<K extends Comparable<K>, V>
 		}
 		assert cnt == t.size() : "size and insert count mistmatch";
 		System.out.format(" - %d Inserts successfully completed\n", cnt);
-		
 
+		// --------------------------------------
 		// test removes
 		int remcnt = 0;
 		for(int i = 1; i < NUMS; i+= 2) {
@@ -350,28 +472,31 @@ public class SplayTree<K extends Comparable<K>, V>
 		System.out.format(" - %d Removes successfully completed\n", remcnt);
 		System.out.format(" - %d items now in tree\n", t.size());
 
+		// --------------------------------------
 		// test min and max keys
 		Integer maxkey = t.maxKey();
 		assert maxkey != null : "max is null";
 
 		Integer minkey = t.minKey();
 		assert minkey != null : "min is null";
-		
+
 		if((minkey).intValue() != 2 || (maxkey).intValue() != NUMS - 2)
 			System.err.println("FindMin or FindMax error!");
-		
+
 		System.out.format (" - (minkey:%s, maxkey:%d)\n", minkey, maxkey);
 		System.out.println(" - Min/Max key tests successfully completed");
 
+		// --------------------------------------
 		// test for keys that should be contained
 		for(int i = 2; i < NUMS; i+=2)
-			if(!t.contains(i))
+			if(!t.find(i))
 				System.err.println("Error: find fails for " + i);
 		System.out.println(" - Positive containment tests successfully completed");
 
+		// --------------------------------------
 		// test for keys that should not be contained
 		for(int i = 1; i < NUMS; i+=2)
-			if(t.contains(i)) 
+			if(t.find(i)) 
 				System.err.println("Error: Found deleted item " + i);
 		System.out.println(" - negative containment tests successfully completed");
 	}
