@@ -45,7 +45,7 @@ public class SplayTree<T extends Comparable<T>>
 	 * @param key the item to insert.
 	 * @return true if successfully added; false if item is already present.
 	 */
-	public boolean insert(T key) {
+	final public boolean insert(T key) {
 		// if empty then just add it
 		if (isEmpty()) {
 			root = new BinaryNode(key);
@@ -82,7 +82,7 @@ public class SplayTree<T extends Comparable<T>>
 	 * @param key the item to remove.
 	 * @return true if key was found and removed. false otherwise.
 	 */
-	public boolean remove(T key) {
+	final public boolean remove(T key) {
 		// splay the tree - if key exists the root will be key
 		splay(key);
 		if (key.compareTo(root.key) != 0) {
@@ -104,7 +104,7 @@ public class SplayTree<T extends Comparable<T>>
 	/**
 	 * @return the smallest item in tree; null if empty
 	 */
-	public T findMin() {
+	final public T findMin() {
 		BinaryNode x = root;
 		if(root == null) 
 			return null;
@@ -119,7 +119,7 @@ public class SplayTree<T extends Comparable<T>>
 	/**
 	 * @return the largest item in the tree; null if empty
 	 */
-	public T findMax() {
+	final public T findMax() {
 //		BinaryNode x = root;
 		if(isEmpty()) 
 			return null;
@@ -141,7 +141,7 @@ public class SplayTree<T extends Comparable<T>>
 	 * REVU (jh): this method should just return boolean.
 	 * REVU (jh): rename to contains
 	 */
-	public boolean contains(T key) {
+	final public boolean contains(T key) {
 		if (isEmpty()) 
 			return false;
 
