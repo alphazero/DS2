@@ -138,7 +138,7 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 	 * @return true if key was found and removed. false otherwise.
 	 * @throws IllegalArgumentException if key is null
 	 */
-	final public boolean remove(K key) {
+	final public boolean delete(K key) {
 		if(key == null)
 			throw new IllegalArgumentException("null key");
 
@@ -228,30 +228,6 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 	// Public API : Map<K, V>
 	// ------------------------------------------------------------------------
 
-	/** NOT SUPPORTED */
-	@Override
-	public void clear() {
-		throw new RuntimeException ("Map<K,V>#clear is not supported!");
-	}
-
-	/** NOT SUPPORTED */
-	@Override
-	public boolean containsValue(Object value) {
-		throw new RuntimeException ("Map<K,V>#containsValue is not supported!");
-	}
-	
-	/** NOT SUPPORTED */
-	@Override
-	public Set<java.util.Map.Entry<K, V>> entrySet() {
-		throw new RuntimeException ("Map<K,V>#entrySet is not supported!");
-	}
-
-	/** NOT SUPPORTED */
-	@Override
-	public Set<K> keySet() {
-		throw new RuntimeException ("Map<K,V>#keySet is not implemented!");
-	}
-	
 	/* (non-Javadoc) @see java.util.Map#containsKey(java.lang.Object) */
 	@SuppressWarnings("unchecked")
 	@Override final
@@ -287,13 +263,6 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 		return node.setValue(value);
 	}
 
-	/* (non-Javadoc) @see java.util.Map#putAll(java.util.Map) */
-	@Override
-	public void putAll(Map<? extends K, ? extends V> m) {
-		// TODO Auto-generated method stub
-		throw new RuntimeException ("Map<K,V>#putAll is not implemented!");
-	}
-
 	/* (non-Javadoc) @see java.util.Map#remove(java.lang.Object) */
 	@SuppressWarnings("unchecked")
 	@Override final
@@ -301,11 +270,14 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 		final BinaryNode node = find((K)key);
 		if(node == null)
 			return null; // wasn't there; null per Map#remove
+		
+		// delete the node - save value for return
 		V value = node.value;
-		// TODO: rename remove(k) to delete()
+		if(!delete((K)key))
+			throw new RuntimeException("BUG: find returned node but delete failed!");
+
 		return value;
 	}
-
 
 	/* (non-Javadoc) @see java.util.Map#size() */
 	@Override final
@@ -313,16 +285,48 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 		return size;
 	}
 	
-	/* (non-Javadoc) @see java.util.Map#values() */
+	/* (non-Javadoc) @see java.util.Map#putAll(java.util.Map) */
 	@Override
-	public Collection<V> values() {
-		// TODO Auto-generated method stub
-		throw new RuntimeException ("Map<K,V>#values is not implemented!");
+	public void putAll(Map<? extends K, ? extends V> m) {
+		for(K k : m.keySet())
+			insert(k, m.get(k));
 	}
 
+	/** NOT SUPPORTED */
+	@Override
+	public void clear() {
+		throw new RuntimeException ("Map<K,V>#clear is not supported!");
+	}
+
+	/** NOT SUPPORTED */
+	@Override
+	public boolean containsValue(Object value) {
+		throw new RuntimeException ("Map<K,V>#containsValue is not supported!");
+	}
+	
+	/** NOT SUPPORTED */
+	@Override
+	public Set<java.util.Map.Entry<K, V>> entrySet() {
+		throw new RuntimeException ("Map<K,V>#entrySet is not supported!");
+	}
+
+	/** NOT SUPPORTED */
+	@Override
+	public Set<K> keySet() {
+		throw new RuntimeException ("Map<K,V>#keySet is not supported!");
+	}
+	
+	/** NOT SUPPORTED */
+	@Override
+	public Collection<V> values() {
+		throw new RuntimeException ("Map<K,V>#values is not supported!");
+	}
 
 	// ------------------------------------------------------------------------
 	// Inner Ops
+	/*
+	 * Exactly per original by Dr. Sleator.  Not touched.
+	 */
 	// ------------------------------------------------------------------------
 	/** 
 	 * This method just illustrates the top-down method of
@@ -412,6 +416,7 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 		t.right = header.left;
 		root = t;
 	}
+	
 	// ------------------------------------------------------------------------
 	// Ad-hoc Tests
 	// ------------------------------------------------------------------------
@@ -444,7 +449,7 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 			// on remove
 		didcheck = false;
 		try {
-			t.remove(null);
+			t.delete(null);
 
 		} catch (IllegalArgumentException e) {
 			didcheck = true;
@@ -469,23 +474,23 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 		int cnt = 0;
 		for(int i = GAP; i != 0; i = (i + GAP) % NUMS){
 			boolean r = t.insert(i, String.format("%d-value", i).toString());
-			assert r : "on insert " + i;
+			assert r : "on insert of node " + i;
 			cnt++;
 		}
 		assert cnt == t.size() : "size and insert count mistmatch";
-		System.out.format(" - %d Inserts successfully completed\n", cnt);
+		System.out.format(" - %d inserts nodes successfully completed\n", cnt);
 
 		// --------------------------------------
 		// test removes
 		int remcnt = 0;
 		for(int i = 1; i < NUMS; i+= 2) {
-			boolean r = t.remove(i);
-			assert r : "on remove of " + i;
+			boolean r = t.delete(i);
+			assert r : "on delete of node " + i;
 			remcnt++;
 			cnt--;
 		}
 		assert cnt == t.size() : "size and updated count after remove mistmatch";
-		System.out.format(" - %d Removes successfully completed\n", remcnt);
+		System.out.format(" - %d delete nodes successfully completed\n", remcnt);
 		System.out.format(" - %d items now in tree\n", t.size());
 
 		// --------------------------------------
