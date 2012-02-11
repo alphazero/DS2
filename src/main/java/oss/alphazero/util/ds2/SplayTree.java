@@ -196,27 +196,23 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 	/**
 	 * Find a node in the tree. Splay operation is applied
 	 * to tree regardless of whether key specified exists or not.
-	 * @return true if contained; false otherwise
+	 * @return the node (now root) if contained; null otherwise
 	 * @throws IllegalArgumentException if key is null
 	 * 
-	 * REVU (jh): this method should just return boolean.
-	 * REVU (jh): renamed to contains
-	 * REVU (jh): nope - lets rename it back to find
-	 *            and introduce contains using find.
 	 */
-	final public boolean find(K key) {
+	final public BinaryNode find(K key) {
 		if(key == null)
 			throw new IllegalArgumentException("null key");
 
 		if (isEmpty()) 
-			return false;
+			return null;
 
 		splay(key);
 
 		if(root.key.compareTo(key) != 0) 
-			return false;
+			return null;
 
-		return true;
+		return root;
 	}
 
 	/**
@@ -489,14 +485,14 @@ public class SplayTree<K extends Comparable<K>, V> implements Map<K,V>
 		// --------------------------------------
 		// test for keys that should be contained
 		for(int i = 2; i < NUMS; i+=2)
-			if(!t.find(i))
+			if(t.find(i) == null)
 				System.err.println("Error: find fails for " + i);
 		System.out.println(" - Positive containment tests successfully completed");
 
 		// --------------------------------------
 		// test for keys that should not be contained
 		for(int i = 1; i < NUMS; i+=2)
-			if(t.find(i)) 
+			if(t.find(i) != null) 
 				System.err.println("Error: Found deleted item " + i);
 		System.out.println(" - negative containment tests successfully completed");
 	}
