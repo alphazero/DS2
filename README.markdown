@@ -1,10 +1,9 @@
 # DS2 - D. Sleator's Data Structures
 
-[source](http://www.link.cs.cmu.edu/link/ftp-site/splaying/)
 
 ## Splaying
 
-Minor mods of Dr. Sleator's [Splay Tree](http://www.link.cs.cmu.edu/splay/) using original public domain (sources)[http://www.link.cs.cmu.edu/link/ftp-site/splaying/]
+Minor mods of Dr. Sleator's [Splay Tree](http://www.link.cs.cmu.edu/splay/) using original public domain [sources](http://www.link.cs.cmu.edu/link/ftp-site/splaying/)
 
 
 ### SplayTree
