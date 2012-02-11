@@ -4,13 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-import oss.alphazero.util.ds2.SplayTree;
+import oss.alphazero.util.ds2.SplayTreeMap;
 
 /**
  * @author Joubin Houshyar <alphazero@sensesay.net>
  * @date:  Feb 11, 2012
  */
-public class Bench {
+public class BenchMaps {
 	static final int NUMS = 40000;
 	static final int GAP  =   307;
 
@@ -29,7 +29,7 @@ public class Bench {
 
 		benchMap (new TreeMap<Integer, String>());
 		benchMap (new HashMap<Integer, String>());
-		benchMap (new SplayTree<Integer, String>());
+		benchMap (new SplayTreeMap<Integer, String>());
 
 	}
 	public static final void benchMap(Map<Integer, String> t) {

@@ -1,16 +1,24 @@
 package oss.alphazero.util.ds2;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Implements a top-down Splay Tree based on original work
  * of Danny Sleator available at http://www.link.cs.cmu.edu/splay/
+ * with partial support for {@link Map} interface.
  * <ol>
  * <li>Modified for Java 5 and later, using Java generics.</li>
  * <li>Modified API for clarity</li>
- * <li>Null key values are not allowed and will throw {@link IllegalArgumentException}</li>
+ * <li>Modified to (partially) support Map<K, V> semantics - original
+ * coupled node key with node value</li>
+ * <li>Null key is clearly not allowed.</li>
+ * <li>Null values are allowed.</li>
  * </ol>
  * 
- * @param K SprayTree node key type
- * 
+ * @param K SplayTreeMap node key type
+ * @param V SplayTreeMap node value type
  * @author Danny Sleator <sleator@cs.cmu.edu>
  * @author Joubin Houshyar <alphazero@sensesay.net>
  * 
@@ -19,42 +27,56 @@ package oss.alphazero.util.ds2;
  * @update:  Feb 10, 2012
  * 
  */
-public class SplayTree<K extends Comparable<K>>
+public class SplayTreeMap<K extends Comparable<K>, V> implements Map<K,V>
 {
-	public class Node
+	// ------------------------------------------------------------------------
+	// Inner class: BinaryNode
+	// ------------------------------------------------------------------------
+	private class Node implements Map.Entry<K, V>
 	{
-		Node(K key) {
+		Node(K key, V value) {
 			this.key = key;
+			this.value = value;
 			left = right = null;
 		}
+
 		/** node key */
-		private K key;
+		K key;
+		/** node value */
+		V value;
 		/** left child */
-		private Node left;
+		Node left;
 		/** right child */
-		private Node right; 
-		
-		/* read only accessors for traversals */
-		final public K key() { return key; }
-		final public Node right() { return right;}
-		final public Node left() { return left;}
+		Node right;
+
+		/* (non-Javadoc) @see java.util.Map.Entry#getKey() */
 		@Override final
-		public String toString () {
-			K kR = right != null ? right.key : null;
-			K kL = left != null ? left.key : null;
-			return String.format("Node[%s] => (L:%s, R:%s)", key, kL, kR);
+		public K getKey() {
+			return key;
 		}
+		/* (non-Javadoc) @see java.util.Map.Entry#getValue() */
+		@Override final
+		public V getValue() {
+			return value;
+		}
+		/* (non-Javadoc) @see java.util.Map.Entry#setValue(java.lang.Object) */
+		@Override final
+		public V setValue(V value) {
+			V oldv = value;
+			this.value = value;
+			return oldv;
+		} 
 	}
 
 	// ------------------------------------------------------------------------
 	// Properties
 	// ------------------------------------------------------------------------
 
-	/** root node (initially null) */
-	private Node root = null;
-
 	/** header node (changed from static - jh) */
-	private final Node header = new Node(null); // For splay
+	private final Node header = new Node(null, null); // For splay
+
+	/** root node (initially null) */
+	private Node root  = null;
 
 	/** number of key-value mappings */
 	private int size = 0;
@@ -62,15 +84,15 @@ public class SplayTree<K extends Comparable<K>>
 	// ------------------------------------------------------------------------
 	// Constructor
 	// ------------------------------------------------------------------------
-	public SplayTree() { }
+	public SplayTreeMap() { }
 
 	// ------------------------------------------------------------------------
 	// Inner Ops
 	// ------------------------------------------------------------------------
 	/** 
 	 * This method just illustrates the top-down method of
-	 * implementing the move-to-root operation and is not used
-	 * in this version. 
+	 * implementing the move-to-root operation and <b>is not used
+	 * in this version</b>. 
 	 */
 	@SuppressWarnings("unused")
 	private void moveToRoot(K key) {
@@ -106,14 +128,15 @@ public class SplayTree<K extends Comparable<K>>
 	 *   splay(key) does the splay operation on the given key.
 	 *   If key is in the tree, then the BinaryNode containing
 	 *   that key becomes the root.  If key is not in the tree,
-	 *   then after the splay, key.root is either the greatest key
-	 *   < key in the tree, or the lest key > key in the tree.
+	 *   then after the splay, root.key is either the greatest key
+	 *   in the tree, or the lest key key in the tree.
 	 *
 	 *   This means, among other things, that if you splay with
 	 *   a key that's larger than any in the tree, the rightmost
 	 *   node of the tree becomes the root.  This property is used
 	 *   in the delete() method.
 	 */
+
 	private void splay(K key) {
 		Node l, r, t, y;
 		l = r = header;
@@ -156,31 +179,35 @@ public class SplayTree<K extends Comparable<K>>
 	}
 
 	// ------------------------------------------------------------------------
-	// Public API : SplayTree
+	// Public API : SplayTreeMap
 	// ------------------------------------------------------------------------
 	/**
-	 * Insert into the tree.
+	 * Insert into the key-value mapping into the tree. Size is incremented.
 	 * @param key the item to insert.
 	 * @return true if successfully added; false if item is already present.
+	 * @throws IllegalArgumentException if key is null
 	 */
-	final public boolean insert(K key) {
+	final public boolean insert(K key, V value) throws IllegalArgumentException {
 		if(key == null)
 			throw new IllegalArgumentException("null key");
 
 		// if empty then just add it
 		if (isEmpty()) {
-			root = new Node(key);
+			root = new Node(key, value);
 			size++;
 			return true;
 		}
 
 		splay(key);
 
+		// check if key is already present
 		int c;
 		if ((c = key.compareTo(root.key)) == 0) 
 			return false;
 
-		Node n = new Node(key);
+
+		// insert new node
+		Node n = new Node(key, value);
 		if (c < 0) {
 			n.left = root.left;
 			n.right = root;
@@ -197,12 +224,12 @@ public class SplayTree<K extends Comparable<K>>
 	}
 
 	/**
-	 * Remove item from the tree.  Note that a splay operation
-	 * is performed on tree even if the key does not exist. 
-	 * REVU(jh): renamed to delete 
+	 * Remove node from the tree.  Note that a splay operation
+	 * is performed on tree even if the key does not exist.  
 	 * 
-	 * @param key the item to remove.
+	 * @param key of the node to remove.
 	 * @return true if key was found and removed. false otherwise.
+	 * @throws IllegalArgumentException if key is null
 	 */
 	final public boolean delete(K key) {
 		if(key == null)
@@ -223,8 +250,8 @@ public class SplayTree<K extends Comparable<K>>
 			splay(key);
 			root.right = x;
 		}
-
 		size--;
+
 		return true;
 	}
 
@@ -260,36 +287,13 @@ public class SplayTree<K extends Comparable<K>>
 	}
 
 	/**
-	 * Find a key in the tree. Splay operation is applied
-	 * to tree regardless of whether item exists or not.
-	 * This method, unlike all other public methods that take
-	 * key as argument will not throw an IllegalArgumentException
-	 * on null keys.  It simply returns false.
-	 * @return true if contained; false otherwise
+	 * Find a node in the tree. Splay operation is applied
+	 * to tree regardless of whether key specified exists or not.
+	 * @return the node (now root) if contained; null otherwise
+	 * @throws IllegalArgumentException if key is null
 	 * 
-	 * REVU (jh): this method should just return boolean.
-	 * REVU (jh): renamed to contains
 	 */
-	final public boolean contains(K key) {
-		if(key == null)
-			return false;
-
-		boolean res = false;
-
-		if(find((K)key) != null)
-			res = true;
-
-		return res;
-	}
-
-	/**
-	 * Splays the tree to find the node with given key.
-	 * Can be used to begin traversals from a given key.
-	 * (jh) Changed return type  as original simply returned the key again.
-	 * @param key
-	 * @return
-	 */
-	final public Node find(K key){
+	final public Node find(K key) {
 		if(key == null)
 			throw new IllegalArgumentException("null key");
 
@@ -303,6 +307,7 @@ public class SplayTree<K extends Comparable<K>>
 
 		return root;
 	}
+
 	/**
 	 * Test if the tree is logically empty.
 	 * @return true if empty, false otherwise.
@@ -311,65 +316,101 @@ public class SplayTree<K extends Comparable<K>>
 		return root == null;
 	}
 
-	final public int size() {
-		return this.size;
+	// ------------------------------------------------------------------------
+	// Public API : Map<K, V>
+	// ------------------------------------------------------------------------
+
+	/* (non-Javadoc) @see java.util.Map#containsKey(java.lang.Object) */
+	@SuppressWarnings("unchecked")
+	@Override final
+	public boolean containsKey(Object key) {
+		boolean res = false;
+
+		if(find((K)key) != null)
+			res = true;
+
+		return res;
 	}
 
+	/* (non-Javadoc) @see java.util.Map#get(java.lang.Object) */
+	@SuppressWarnings("unchecked")
+	@Override final
+	public V get(Object key) {
+		final Node node = find((K)key);
+		if(node == null)
+			return null;
 
+		return node.value;
+	}
 
-	// ========================================================================
-	// Statics for adhoc tests -- remove at will
-	// ========================================================================
-	/**
-	 * "test code stolen from Weiss" 
-	 * Original tests of DS. <b>Enable assert!</b> 
-	 * cleaned up to use type safe forms (jh)
-	 */
-	public static void main(String [ ] args)
-	{
-		SplayTree<Integer> t = new SplayTree<Integer>();
-		final int NUMS = 40000;
-		final int GAP  =   307;
-
-		System.out.format("Running 'Weiss' ad-hoc tests with NUMS:%s GAP:%s\n", NUMS, GAP);
-		System.out.format("*** NOTE: enable assert with Java -ea ...*** \n\n");
-
-		// test inserts
-		for(int i = GAP; i != 0; i = (i + GAP) % NUMS){
-			boolean r = t.insert(i);
-			assert r : "on insert " + i;
+	/* (non-Javadoc) @see java.util.Map#put(java.lang.Object, java.lang.Object) */
+	@Override final
+	public V put(K key, V value) {
+		final Node node = find((K)key);
+		if(node == null) {
+			if(!insert(key, value))
+				throw new RuntimeException("BUG: find returned null but insert failed!");
+			return null; // successful insert of new key per Map#put
 		}
-		System.out.println(" - Inserts successfully completed");
+		return node.setValue(value);
+	}
 
-		// test removes
-		for(int i = 1; i < NUMS; i+= 2) {
-			boolean r = t.delete(i);
-			assert r : "on remove of " + i;
-		}
-		System.out.println(" - Removes successfully completed");
+	/* (non-Javadoc) @see java.util.Map#remove(java.lang.Object) */
+	@SuppressWarnings("unchecked")
+	@Override final
+	public V remove(Object key) {
+		final Node node = find((K)key);
+		if(node == null)
+			return null; // wasn't there; null per Map#remove
 
-		// test min and max keys
-		Integer maxkey = t.maxKey();
-		assert maxkey != null : "max is null";
+		// delete the node - save value for return
+		V value = node.value;
+		if(!delete((K)key))
+			throw new RuntimeException("BUG: find returned node but delete failed!");
 
-		Integer minkey = t.minKey();
-		assert minkey != null : "min is null";
+		return value;
+	}
 
-		if((minkey).intValue() != 2 || (maxkey).intValue() != NUMS - 2)
-			System.err.println("FindMin or FindMax error!");
+	/* (non-Javadoc) @see java.util.Map#size() */
+	@Override final
+	public int size() {
+		return size;
+	}
 
-		System.out.println(" - Min/Max key tests successfully completed");
+	/* (non-Javadoc) @see java.util.Map#putAll(java.util.Map) */
+	@Override
+	public void putAll(Map<? extends K, ? extends V> m) {
+		for(K k : m.keySet())
+			insert(k, m.get(k));
+	}
 
-		// test for keys that should be contained
-		for(int i = 2; i < NUMS; i+=2)
-			if(!t.contains(i))
-				System.err.println("Error: find fails for " + i);
-		System.out.println(" - Positive containment tests successfully completed");
+	/** NOT SUPPORTED */
+	@Override
+	public void clear() {
+		throw new RuntimeException ("Map<K,V>#clear is not supported!");
+	}
 
-		// test for keys that should not be contained
-		for(int i = 1; i < NUMS; i+=2)
-			if(t.contains(i)) 
-				System.err.println("Error: Found deleted item " + i);
-		System.out.println(" - negative containment tests successfully completed");
+	/** NOT SUPPORTED */
+	@Override
+	public boolean containsValue(Object value) {
+		throw new RuntimeException ("Map<K,V>#containsValue is not supported!");
+	}
+
+	/** NOT SUPPORTED */
+	@Override
+	public Set<java.util.Map.Entry<K, V>> entrySet() {
+		throw new RuntimeException ("Map<K,V>#entrySet is not supported!");
+	}
+
+	/** NOT SUPPORTED */
+	@Override
+	public Set<K> keySet() {
+		throw new RuntimeException ("Map<K,V>#keySet is not supported!");
+	}
+
+	/** NOT SUPPORTED */
+	@Override
+	public Collection<V> values() {
+		throw new RuntimeException ("Map<K,V>#values is not supported!");
 	}
 }
