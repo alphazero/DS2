@@ -1,0 +1,24 @@
+# DS2 - D. Sleator's Data Structures
+
+## Splaying
+
+Minor mods of Dr. Sleator's [original code](http://www.link.cs.cmu.edu/splay/):
+
+### SplayTree
+
+- Use type-safe Java generics and get rid of compiler warnings
+- Minor cleanup of, and enhancements e.g.size() to, the API
+
+[quick view](https://github.com/alphazero/DS2/blob/master/src/main/java/oss/alphazero/util/ds2/SplayTree.java)
+
+### SplayTreeMap 
+
+- Partial support for Map<K, V> 
+
+[quick view](https://github.com/alphazero/DS2/blob/master/src/main/java/oss/alphazero/util/ds2/SplayTreeMap.java)
+
+-
+
+bushwick/nyc
+2012
+
