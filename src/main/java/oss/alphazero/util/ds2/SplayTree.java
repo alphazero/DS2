@@ -3,31 +3,32 @@ package oss.alphazero.util.ds2;
 /**
  * Implements a top-down Splay Tree based on original work
  * of Danny Sleator available at http://www.link.cs.cmu.edu/splay/
+ * <ol>
+ * <li>Modified for Java 5 and later, using Java generics.</li>
+ * <li>Modified API for clarity</li>
+ * </ol>
  * 
- * Modified for Java 5 and later, using Java generics.
- * 
- * @param T SprayTree node value type
+ * @param K SprayTree node key type
  * 
  * @author Danny Sleator <sleator@cs.cmu.edu>
  * @author Joubin Houshyar <alphazero@sensesay.net>
  * 
  * This code is in the public domain.
  * 
- * @author Joubin Houshyar <alphazero@sensesay.net>
- * @date:  Feb 10, 2012
+ * @update:  Feb 10, 2012
  * 
  */
-public class SplayTree<T extends Comparable<T>>
+public class SplayTree<K extends Comparable<K>>
 {
 	class BinaryNode
 	{
-		BinaryNode(T key) {
+		BinaryNode(K key) {
 			this.key = key;
 			left = right = null;
 		}
 
-		/** node value item */
-		T key;
+		/** node key */
+		K key;
 		/** left child */
 		BinaryNode left;
 		/** right child */
@@ -45,7 +46,7 @@ public class SplayTree<T extends Comparable<T>>
 	 * @param key the item to insert.
 	 * @return true if successfully added; false if item is already present.
 	 */
-	final public boolean insert(T key) {
+	final public boolean insert(K key) {
 		// if empty then just add it
 		if (isEmpty()) {
 			root = new BinaryNode(key);
@@ -82,7 +83,7 @@ public class SplayTree<T extends Comparable<T>>
 	 * @param key the item to remove.
 	 * @return true if key was found and removed. false otherwise.
 	 */
-	final public boolean remove(T key) {
+	final public boolean remove(K key) {
 		// splay the tree - if key exists the root will be key
 		splay(key);
 		if (key.compareTo(root.key) != 0) {
@@ -104,7 +105,7 @@ public class SplayTree<T extends Comparable<T>>
 	/**
 	 * @return the smallest item in tree; null if empty
 	 */
-	final public T findMin() {
+	final public K minKey() {
 		BinaryNode x = root;
 		if(root == null) 
 			return null;
@@ -117,9 +118,9 @@ public class SplayTree<T extends Comparable<T>>
 	}
 
 	/**
-	 * @return the largest item in the tree; null if empty
+	 * @return the largest key in the tree; null if empty
 	 */
-	final public T findMax() {
+	final public K maxKey() {
 		if(isEmpty()) 
 			return null;
 		
@@ -133,14 +134,14 @@ public class SplayTree<T extends Comparable<T>>
 	}
 
 	/**
-	 * Find an item in the tree. Splay op is applied
+	 * Find a key in the tree. Splay operation is applied
 	 * to tree regardless of whether item exists or not.
 	 * @return true if contained; false otherwise
 	 * 
 	 * REVU (jh): this method should just return boolean.
-	 * REVU (jh): rename to contains
+	 * REVU (jh): renamed to contains
 	 */
-	final public boolean contains(T key) {
+	final public boolean contains(K key) {
 		if (isEmpty()) 
 			return false;
 
@@ -166,7 +167,7 @@ public class SplayTree<T extends Comparable<T>>
 	 * in this version. 
 	 */
 	@SuppressWarnings("unused")
-	private void moveToRoot(T key) {
+	private void moveToRoot(K key) {
 		BinaryNode l, r, t;
 		l = r = header;
 		t = root;
@@ -211,7 +212,7 @@ public class SplayTree<T extends Comparable<T>>
 	 *   in the delete() method.
 	 */
 
-	private void splay(T key) {
+	private void splay(K key) {
 		BinaryNode l, r, t, y;
 		l = r = header;
 		t = root;
@@ -277,17 +278,17 @@ public class SplayTree<T extends Comparable<T>>
 		}
 		System.out.println(" - Removes successfully completed");
 
-		// test min and max
-		Integer max = t.findMax();
-		assert max != null : "max is null";
+		// test min and max keys
+		Integer maxkey = t.maxKey();
+		assert maxkey != null : "max is null";
 
-		Integer min = t.findMin();
-		assert min != null : "min is null";
+		Integer minkey = t.minKey();
+		assert minkey != null : "min is null";
 		
-		if((min).intValue() != 2 || (max).intValue() != NUMS - 2)
+		if((minkey).intValue() != 2 || (maxkey).intValue() != NUMS - 2)
 			System.err.println("FindMin or FindMax error!");
 		
-		System.out.println(" - Min/Max tests successfully completed");
+		System.out.println(" - Min/Max key tests successfully completed");
 
 		// test for keys that should be contained
 		for(int i = 2; i < NUMS; i+=2)
