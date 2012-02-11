@@ -5,11 +5,14 @@ import java.util.Map;
 /**
  * Implements a top-down Splay Tree based on original work
  * of Danny Sleator available at http://www.link.cs.cmu.edu/splay/
+ * with partial support for {@link Map} interface.
  * <ol>
  * <li>Modified for Java 5 and later, using Java generics.</li>
  * <li>Modified API for clarity</li>
  * <li>Modified to (partially) support Map<K, V> semantics - original
  * coupled node key with node value</li>
+ * <li>Null key is clearly not allowed.</li>
+ * <li>Null values are allowed.</li>
  * </ol>
  * 
  * @param K SprayTree node key type
@@ -22,7 +25,7 @@ import java.util.Map;
  * @update:  Feb 10, 2012
  * 
  */
-public class SplayTree<K extends Comparable<K>, V extends Object>
+public class SplayTree<K extends Comparable<K>, V>
 {
 	// ------------------------------------------------------------------------
 	// Inner class: BinaryNode
@@ -69,6 +72,9 @@ public class SplayTree<K extends Comparable<K>, V extends Object>
 
 	/** header node (changed from static - jh) */
 	private final BinaryNode header = new BinaryNode(null, null); // For splay
+	
+	/** number of key-value mappings */
+	private int size;
 
 	// ------------------------------------------------------------------------
 	// Constructor
@@ -81,25 +87,31 @@ public class SplayTree<K extends Comparable<K>, V extends Object>
 	// Public API
 	// ------------------------------------------------------------------------
 	/**
-	 * Insert into the tree.
+	 * Insert into the key-value mapping into the tree. Size is incremented.
 	 * @param key the item to insert.
 	 * @return true if successfully added; false if item is already present.
+	 * @throws IllegalArgumentException if key is null
 	 */
-	final public boolean insert(K key, V value) {
+	final public boolean insert(K key, V value) throws IllegalArgumentException {
+		if(key == null)
+			throw new IllegalArgumentException("null key");
+		
 		// if empty then just add it
 		if (isEmpty()) {
 			root = new BinaryNode(key, value);
+			++size;
 			return true;
 		}
 
 		splay(key);
 
+		// key is already present
 		int c;
 		if ((c = key.compareTo(root.key)) == 0) {
-			String errmsg = String.format("duplicate:", key.toString()).toString();
-			throw new IllegalArgumentException(errmsg);	    
+			return false;
 		}
 		
+		// insert new node
 		BinaryNode n = new BinaryNode(key, value);
 		if (c < 0) {
 			n.left = root.left;
@@ -111,15 +123,16 @@ public class SplayTree<K extends Comparable<K>, V extends Object>
 			root.right = null;
 		}
 		root = n;
+		++size;
 		
 		return true;
 	}
 
 	/**
-	 * Remove item from the tree.  Note that a splay operation
+	 * Remove node from the tree.  Note that a splay operation
 	 * is performed on tree even if the key does not exist.  
 	 * 
-	 * @param key the item to remove.
+	 * @param key of the node to remove.
 	 * @return true if key was found and removed. false otherwise.
 	 */
 	final public boolean remove(K key) {
@@ -138,6 +151,8 @@ public class SplayTree<K extends Comparable<K>, V extends Object>
 			splay(key);
 			root.right = x;
 		}
+		--size;
+		
 		return true;
 	}
 
@@ -294,6 +309,9 @@ public class SplayTree<K extends Comparable<K>, V extends Object>
 		root = t;
 	}
 
+	final public int size() {
+		return size;
+	}
 	// ------------------------------------------------------------------------
 	// Ad-hoc Tests
 	// ------------------------------------------------------------------------
@@ -309,19 +327,28 @@ public class SplayTree<K extends Comparable<K>, V extends Object>
 		System.out.format("Running 'Weiss' ad-hoc tests with NUMS:%s GAP:%s\n", NUMS, GAP);
 		System.out.format("*** NOTE: enable assert with Java -ea ...*** \n\n");
 
+		int cnt = 0;
 		// test inserts
 		for(int i = GAP; i != 0; i = (i + GAP) % NUMS){
 			boolean r = t.insert(i, String.format("%d-value", i).toString());
 			assert r : "on insert " + i;
+			cnt++;
 		}
-		System.out.println(" - Inserts successfully completed");
+		assert cnt == t.size() : "size and insert count mistmatch";
+		System.out.format(" - %d Inserts successfully completed\n", cnt);
+		
 
 		// test removes
+		int remcnt = 0;
 		for(int i = 1; i < NUMS; i+= 2) {
 			boolean r = t.remove(i);
 			assert r : "on remove of " + i;
+			remcnt++;
+			cnt--;
 		}
-		System.out.println(" - Removes successfully completed");
+		assert cnt == t.size() : "size and updated count after remove mistmatch";
+		System.out.format(" - %d Removes successfully completed\n", remcnt);
+		System.out.format(" - %d items now in tree\n", t.size());
 
 		// test min and max keys
 		Integer maxkey = t.maxKey();
