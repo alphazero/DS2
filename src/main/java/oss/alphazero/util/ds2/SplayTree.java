@@ -120,7 +120,6 @@ public class SplayTree<T extends Comparable<T>>
 	 * @return the largest item in the tree; null if empty
 	 */
 	final public T findMax() {
-//		BinaryNode x = root;
 		if(isEmpty()) 
 			return null;
 		

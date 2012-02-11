@@ -1,5 +1,14 @@
 DS2: Danny Sleator's Data Structures
-Author: Danny Sleator <sleator@cs.cmu.edu>
 
-"This code is in public domain" per original work.
-All modification done by me are also public domain.
+/*
+ * Implements a top-down splay tree.
+ * Available at http://www.link.cs.cmu.edu/splay/
+ * Author: Danny Sleator <sleator@cs.cmu.edu>
+ * This code is in the public domain.
+ */
+
+NOTICE for all modifications to above original work
+dev: Joubin Houshyar <alphazero@sensesay.net>
+cms: https://github.com/alphazero/ds2
+This code is in the public domain.
+
