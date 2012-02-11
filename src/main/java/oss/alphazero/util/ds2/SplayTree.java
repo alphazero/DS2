@@ -1,11 +1,15 @@
 package oss.alphazero.util.ds2;
 
+import java.util.Map;
+
 /**
  * Implements a top-down Splay Tree based on original work
  * of Danny Sleator available at http://www.link.cs.cmu.edu/splay/
  * <ol>
  * <li>Modified for Java 5 and later, using Java generics.</li>
  * <li>Modified API for clarity</li>
+ * <li>Modified to (partially) support Map<K, V> semantics - original
+ * coupled node key with node value</li>
  * </ol>
  * 
  * @param K SprayTree node key type
@@ -20,7 +24,10 @@ package oss.alphazero.util.ds2;
  */
 public class SplayTree<K extends Comparable<K>, V extends Object>
 {
-	class BinaryNode
+	// ------------------------------------------------------------------------
+	// Inner class: BinaryNode
+	// ------------------------------------------------------------------------
+	class BinaryNode implements Map.Entry<K, V>
 	{
 		BinaryNode(K key, V value) {
 			this.key = key;
@@ -34,15 +41,45 @@ public class SplayTree<K extends Comparable<K>, V extends Object>
 		/** left child */
 		BinaryNode left;
 		/** right child */
-		BinaryNode right; 
+		BinaryNode right;
+		/* (non-Javadoc) @see java.util.Map.Entry#getKey() */
+		@Override final
+		public K getKey() {
+			return key;
+		}
+		/* (non-Javadoc) @see java.util.Map.Entry#getValue() */
+		@Override final
+		public V getValue() {
+			return value;
+		}
+		/* (non-Javadoc) @see java.util.Map.Entry#setValue(java.lang.Object) */
+		@Override final
+		public V setValue(V value) {
+			V oldv = value;
+			this.value = value;
+			return oldv;
+		} 
 	}
+	
+	// ------------------------------------------------------------------------
+	// Properties
+	// ------------------------------------------------------------------------
 	/** root node (initially null) */
 	private BinaryNode root;
 
+	/** header node (changed from static - jh) */
+	private final BinaryNode header = new BinaryNode(null, null); // For splay
+
+	// ------------------------------------------------------------------------
+	// Constructor
+	// ------------------------------------------------------------------------
 	public SplayTree() {
 		root = null;
 	}
 
+	// ------------------------------------------------------------------------
+	// Public API
+	// ------------------------------------------------------------------------
 	/**
 	 * Insert into the tree.
 	 * @param key the item to insert.
@@ -142,6 +179,8 @@ public class SplayTree<K extends Comparable<K>, V extends Object>
 	 * 
 	 * REVU (jh): this method should just return boolean.
 	 * REVU (jh): renamed to contains
+	 * REVU (jh): nope - lets rename it back to find
+	 *            and introduce contains using find.
 	 */
 	final public boolean contains(K key) {
 		if (isEmpty()) 
@@ -163,10 +202,13 @@ public class SplayTree<K extends Comparable<K>, V extends Object>
 		return root == null;
 	}
 
+	// ------------------------------------------------------------------------
+	// Inner Ops
+	// ------------------------------------------------------------------------
 	/** 
 	 * This method just illustrates the top-down method of
-	 * implementing the move-to-root operation and is not used
-	 * in this version. 
+	 * implementing the move-to-root operation and <b>is not used
+	 * in this version</b>. 
 	 */
 	@SuppressWarnings("unused")
 	private void moveToRoot(K key) {
@@ -195,9 +237,6 @@ public class SplayTree<K extends Comparable<K>, V extends Object>
 		t.right = header.left;
 		root = t;
 	}
-
-	/** header node (changed from static - jh) */
-	private final BinaryNode header = new BinaryNode(null, null); // For splay
 
 	/**
 	 * Internal method to perform a top-down splay.
@@ -255,6 +294,10 @@ public class SplayTree<K extends Comparable<K>, V extends Object>
 		root = t;
 	}
 
+	// ------------------------------------------------------------------------
+	// Ad-hoc Tests
+	// ------------------------------------------------------------------------
+	
 	// test code stolen from Weiss
 	// cleaned up to use typesafe form - jh
 	public static void main(String [ ] args)
