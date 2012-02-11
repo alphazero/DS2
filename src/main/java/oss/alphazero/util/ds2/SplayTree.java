@@ -18,17 +18,19 @@ package oss.alphazero.util.ds2;
  * @update:  Feb 10, 2012
  * 
  */
-public class SplayTree<K extends Comparable<K>>
+public class SplayTree<K extends Comparable<K>, V extends Object>
 {
 	class BinaryNode
 	{
-		BinaryNode(K key) {
+		BinaryNode(K key, V value) {
 			this.key = key;
 			left = right = null;
 		}
 
 		/** node key */
 		K key;
+		/** node value */
+		V value;
 		/** left child */
 		BinaryNode left;
 		/** right child */
@@ -46,10 +48,10 @@ public class SplayTree<K extends Comparable<K>>
 	 * @param key the item to insert.
 	 * @return true if successfully added; false if item is already present.
 	 */
-	final public boolean insert(K key) {
+	final public boolean insert(K key, V value) {
 		// if empty then just add it
 		if (isEmpty()) {
-			root = new BinaryNode(key);
+			root = new BinaryNode(key, value);
 			return true;
 		}
 
@@ -61,7 +63,7 @@ public class SplayTree<K extends Comparable<K>>
 			throw new IllegalArgumentException(errmsg);	    
 		}
 		
-		BinaryNode n = new BinaryNode(key);
+		BinaryNode n = new BinaryNode(key, value);
 		if (c < 0) {
 			n.left = root.left;
 			n.right = root;
@@ -195,7 +197,7 @@ public class SplayTree<K extends Comparable<K>>
 	}
 
 	/** header node (changed from static - jh) */
-	private final BinaryNode header = new BinaryNode(null); // For splay
+	private final BinaryNode header = new BinaryNode(null, null); // For splay
 
 	/**
 	 * Internal method to perform a top-down splay.
@@ -257,7 +259,7 @@ public class SplayTree<K extends Comparable<K>>
 	// cleaned up to use typesafe form - jh
 	public static void main(String [ ] args)
 	{
-		SplayTree<Integer> t = new SplayTree<Integer>();
+		SplayTree<Integer, String> t = new SplayTree<Integer, String>();
 		final int NUMS = 40000;
 		final int GAP  =   307;
 
@@ -266,7 +268,7 @@ public class SplayTree<K extends Comparable<K>>
 
 		// test inserts
 		for(int i = GAP; i != 0; i = (i + GAP) % NUMS){
-			boolean r = t.insert(i);
+			boolean r = t.insert(i, String.format("%d-value", i).toString());
 			assert r : "on insert " + i;
 		}
 		System.out.println(" - Inserts successfully completed");
@@ -288,6 +290,7 @@ public class SplayTree<K extends Comparable<K>>
 		if((minkey).intValue() != 2 || (maxkey).intValue() != NUMS - 2)
 			System.err.println("FindMin or FindMax error!");
 		
+		System.out.format (" - (minkey:%s, maxkey:%d)\n", minkey, maxkey);
 		System.out.println(" - Min/Max key tests successfully completed");
 
 		// test for keys that should be contained
