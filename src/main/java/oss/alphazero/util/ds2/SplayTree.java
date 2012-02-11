@@ -43,21 +43,24 @@ public class SplayTree<T extends Comparable<T>>
 	/**
 	 * Insert into the tree.
 	 * @param key the item to insert.
-	 * @throws IllegalArgumentException if x is already present.
+	 * @return true if successfully added; false if item is already present.
 	 */
-	public void insert(T key) throws IllegalArgumentException {
-		BinaryNode n;
-		int c;
-		if (root == null) {
+	public boolean insert(T key) {
+		// if empty then just add it
+		if (isEmpty()) {
 			root = new BinaryNode(key);
-			return;
+			return true;
 		}
+
 		splay(key);
+
+		int c;
 		if ((c = key.compareTo(root.key)) == 0) {
 			String errmsg = String.format("duplicate:", key.toString()).toString();
 			throw new IllegalArgumentException(errmsg);	    
 		}
-		n = new BinaryNode(key);
+		
+		BinaryNode n = new BinaryNode(key);
 		if (c < 0) {
 			n.left = root.left;
 			n.right = root;
@@ -68,11 +71,14 @@ public class SplayTree<T extends Comparable<T>>
 			root.right = null;
 		}
 		root = n;
+		
+		return true;
 	}
 
 	/**
 	 * Remove item from the tree.  Note that a splay operation
 	 * is performed on tree even if the key does not exist.  
+	 * 
 	 * @param key the item to remove.
 	 * @return true if key was found and removed. false otherwise.
 	 */
@@ -114,9 +120,11 @@ public class SplayTree<T extends Comparable<T>>
 	 * @return the largest item in the tree; null if empty
 	 */
 	public T findMax() {
-		BinaryNode x = root;
-		if(root == null) 
+//		BinaryNode x = root;
+		if(isEmpty()) 
 			return null;
+		
+		BinaryNode x = root;
 		while(x.right != null) 
 			x = x.right;
 		
@@ -128,26 +136,28 @@ public class SplayTree<T extends Comparable<T>>
 	/**
 	 * Find an item in the tree. Splay op is applied
 	 * to tree regardless of whether item exists or not.
-	 * @return the key if found; null if not
-	 * REVU (jh): shouldn't this just return boolean?
+	 * @return true if contained; false otherwise
+	 * 
+	 * REVU (jh): this method should just return boolean.
+	 * REVU (jh): rename to contains
 	 */
-	public T find(T key) {
-		if (root == null) 
-			return null;
+	public boolean contains(T key) {
+		if (isEmpty()) 
+			return false;
 
 		splay(key);
 		
 		if(root.key.compareTo(key) != 0) 
-			return null;
+			return false;
 		
-		return root.key;
+		return true;
 	}
 
 	/**
 	 * Test if the tree is logically empty.
 	 * @return true if empty, false otherwise.
 	 */
-	public boolean isEmpty() {
+	final public boolean isEmpty() {
 		return root == null;
 	}
 
@@ -251,28 +261,45 @@ public class SplayTree<T extends Comparable<T>>
 		final int NUMS = 40000;
 		final int GAP  =   307;
 
-		System.out.println("Checking... (no bad output means success)");
+		System.out.format("Running 'Weiss' ad-hoc tests with NUMS:%s GAP:%s\n", NUMS, GAP);
+		System.out.format("*** NOTE: enable assert with Java -ea ...*** \n\n");
 
-		for(int i = GAP; i != 0; i = (i + GAP) % NUMS)
-			t.insert(i);
-		System.out.println("Inserts complete");
+		// test inserts
+		for(int i = GAP; i != 0; i = (i + GAP) % NUMS){
+			boolean r = t.insert(i);
+			assert r : "on insert " + i;
+		}
+		System.out.println(" - Inserts successfully completed");
 
+		// test removes
 		for(int i = 1; i < NUMS; i+= 2) {
 			boolean r = t.remove(i);
 			assert r : "on remove of " + i;
 		}
-		System.out.println("Removes complete");
+		System.out.println(" - Removes successfully completed");
 
-		if((t.findMin()).intValue() != 2 ||
-				((t.findMax())).intValue() != NUMS - 2)
+		// test min and max
+		Integer max = t.findMax();
+		assert max != null : "max is null";
+
+		Integer min = t.findMin();
+		assert min != null : "min is null";
+		
+		if((min).intValue() != 2 || (max).intValue() != NUMS - 2)
 			System.err.println("FindMin or FindMax error!");
+		
+		System.out.println(" - Min/Max tests successfully completed");
 
+		// test for keys that should be contained
 		for(int i = 2; i < NUMS; i+=2)
-			if((t.find(i)).intValue() != i)
+			if(!t.contains(i))
 				System.err.println("Error: find fails for " + i);
+		System.out.println(" - Positive containment tests successfully completed");
 
+		// test for keys that should not be contained
 		for(int i = 1; i < NUMS; i+=2)
-			if(t.find(i)  != null) 
+			if(t.contains(i)) 
 				System.err.println("Error: Found deleted item " + i);
+		System.out.println(" - negative containment tests successfully completed");
 	}
 }
